@@ -18,6 +18,7 @@ https://learn.microsoft.com/en-us/graph/migrate-azure-ad-graph-configure-permiss
 - performance was slow but could be due to free tier/using consumption plan for function
 
 ## Future potential extensions:
+- could post teams chat message with summarized text
 - extend to use cognitive-services for text summarization, key phrase and named entity recognition
 https://learn.microsoft.com/en-us/azure/cognitive-services/language-service/summarization/how-to/document-summarization
 - integration potential for HealthCare to summarize or categorize patient data/charts etc, PII detection
