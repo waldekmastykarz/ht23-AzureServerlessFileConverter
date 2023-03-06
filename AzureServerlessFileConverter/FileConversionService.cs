@@ -44,7 +44,7 @@ internal class FileConversionService
         //todo: handle clean up in case of exceptions
         await _fileHandler.CleanUpAsync($"{sitePath}", fileId);
          
-        return new FileContentResult(pdf, "application/pdf");
+        return new ConvertedFile(pdf, "application/pdf");
     }
 
     //todo: better way to do handle OData response?
