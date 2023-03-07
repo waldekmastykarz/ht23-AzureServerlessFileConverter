@@ -31,14 +31,15 @@ internal class FileConversionService
         }
 
         var sitePath = $"{_siteOptions.GraphEndpoint}sites/{_siteOptions.SiteId}/drive/items/";
-        var response = await _fileHandler.UploadFileStreamAsync(sitePath, req.Body, req.ContentType);
+        var driveResponse = await _fileHandler.UploadFileStreamAsync(sitePath, req.Body, req.ContentType);
 
         //get odata response for download path and file id
-        var odataResponse = JsonConvert.DeserializeObject<OData<string>>(response);
-        var fileId = odataResponse.Id; //"largefiletest.pptx:";
+        //var odataResponse = JsonConvert.DeserializeObject<OData<string>>(response); //todo - this won't work since it is returning just Id
+
+        var fileId = driveResponse.Id; 
 
         //todo: to extend - get download format from request (https://learn.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_get_content_format?view=odsp-graph-online)
-        var pdf = await _fileHandler.DownloadConvertedFileAsync(odataResponse.DownloadUrl, string.Empty, "pdf");
+        var pdf = await _fileHandler.DownloadConvertedFileAsync(driveResponse.WebUrl, string.Empty, "pdf");
         //var path = "https://graph.microsoft.com/v1.0/sites/siteId/drive/items/root:/";
         
         //todo: handle clean up in case of exceptions

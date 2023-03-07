@@ -91,7 +91,7 @@ internal class FileHandlerService
 
     //Upload large file: https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
     //This can be used for smaller file sizes as well
-    internal async Task<string> UploadFileStreamAsync(string path, Stream content, string contentType)
+    internal async Task<DriveItem> UploadFileStreamAsync(string path, Stream content, string contentType)
     {
         var httpClient = await CreateAuthorizedHttpClient();
 
@@ -112,7 +112,7 @@ internal class FileHandlerService
         //string response = UploadFileBySession(uploadSession.uploadUrl, sContents);
 
         var something = GraphItemsHandler.UploadLargeFileAsync(uploadSession.uploadUrl, content);
-        return something.Result.ItemResponse.Id;            
+        return something.Result.ItemResponse;            
     }
 
     //todo
