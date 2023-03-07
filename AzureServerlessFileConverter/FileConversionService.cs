@@ -31,15 +31,11 @@ internal class FileConversionService
         }
 
         var sitePath = $"{_siteOptions.GraphEndpoint}sites/{_siteOptions.SiteId}/drive/items/";
-        var driveResponse = await _fileHandler.UploadFileStreamAsync(sitePath, req.Body, req.ContentType);
-
-        //get odata response for download path and file id
-        //var odataResponse = JsonConvert.DeserializeObject<OData<string>>(response); //todo - this won't work since it is returning just Id
-
+        var driveResponse = await FileHandlerService.UploadFileStreamAsync(sitePath, req.Body, req.ContentType);
         var fileId = driveResponse.Id; 
 
         //todo: to extend - get download format from request (https://learn.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_get_content_format?view=odsp-graph-online)
-        var pdf = await _fileHandler.DownloadConvertedFileAsync(driveResponse.WebUrl, string.Empty, "pdf");
+        var pdf = await _fileHandler.DownloadConvertedFileAsync(driveResponse.WebUrl, string.Empty, "pdf"); //todo: do using graph sdk
         //var path = "https://graph.microsoft.com/v1.0/sites/siteId/drive/items/root:/";
         
         //todo: handle clean up in case of exceptions
@@ -47,16 +43,7 @@ internal class FileConversionService
          
         return new FileContentResult(pdf, "application/pdf");
     }
-
-    //todo: better way to do handle OData response?
-    private class OData<T>
-    {
-        [JsonProperty("@content.downloadUrl")]
-        public string DownloadUrl { get; set; }
-        
-        [JsonProperty("id")]
-        public string Id { get; set; }  
-    }    
+    
 }
 internal class SiteOptions
 {

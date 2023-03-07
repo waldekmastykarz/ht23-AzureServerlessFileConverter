@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -84,12 +85,31 @@ namespace AzureServerlessPDFConverter
                 return null;
             }
         }
-
         internal static async Task DeleteFileFromDrive(string itemId)
         {
             GraphServiceClient graphClient = GetGraphServiceClient();
             await graphClient.Me.Messages[itemId]
                 .DeleteAsync();
         }
+
+        //TODO: Figure out compiler errors for QueryOption
+        internal static async Task<Stream> DownloadItemFromDrive(string itemId)
+        {
+            GraphServiceClient graphClient = GetGraphServiceClient();
+
+            //todo: Figure out compiler errors for QueryOption 
+            //var queryOptions = new List<QueryOption>()
+            //{
+            //    new QueryOption("format", "pdf")
+            //};
+
+            var fileContent = await graphClient.Drives[_graphApiOptions.DriveId].Items[itemId].Content
+            // .Request(queryOptions)
+            .GetAsync();
+            
+            return fileContent;
+        }
+
+
     }
 }

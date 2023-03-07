@@ -2,16 +2,11 @@
 using AzureServerlessPDFConverter;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
-using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using static AzureFileConverter.AuthenticationService;
 
 namespace AzureFileConverter;
 internal class FileHandlerService
@@ -77,42 +72,47 @@ internal class FileHandlerService
     //clean up resources after conversion; could be re-used to delete any file by passing the fileId
     internal async Task CleanUpAsync(string path, string fileId)
     {
-        var httpClient = await CreateAuthorizedHttpClient();
+        await GraphItemsHandler.DeleteFileFromDrive(fileId);
 
-        var requestUrl = $"{path}{fileId}";
-        var something = GetGraphServiceClient(); 
-        var response = await httpClient.DeleteAsync(requestUrl);
-        if (!response.IsSuccessStatusCode)
-        {
-            var message = await response.Content.ReadAsStringAsync();
-            throw new Exception($"CleanUp failed with status {response.StatusCode} and message {message}");
-        }
+        #region CleanUp
+        //var httpClient = await CreateAuthorizedHttpClient();
+
+        //var requestUrl = $"{path}{fileId}";
+        //var response = await httpClient.DeleteAsync(requestUrl);
+        //if (!response.IsSuccessStatusCode)
+        //{
+        //    var message = await response.Content.ReadAsStringAsync();
+        //    throw new Exception($"CleanUp failed with status {response.StatusCode} and message {message}");
+        //}
+        #endregion
     }
 
     //Upload large file: https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
     //This can be used for smaller file sizes as well
-    internal async Task<DriveItem> UploadFileStreamAsync(string path, Stream content, string contentType)
+    internal static async Task<DriveItem> UploadFileStreamAsync(string path, Stream content, string contentType)
     {
-        var httpClient = await CreateAuthorizedHttpClient();
+        var uploadResponse = await GraphItemsHandler.UploadLargeFileAsync(path, content);
+        return uploadResponse.ItemResponse;
 
-        string tmpFileName = $"{Guid.NewGuid()}{MimeTypes.MimeTypeMap.GetExtension(contentType)}";
-        
-        string requestUrl = $"{path}root:/{tmpFileName}:/createUploadSession"; //create session for uploading the file stream
-        //sample url: "https://graph.microsoft.com/v1.0/sites/siteId/drive/items/root:/createUploadSession"
+        #region CleanUp
+        //var httpClient = await CreateAuthorizedHttpClient();
 
-        var requestContent = new StreamContent(content);
-        requestContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        //string tmpFileName = $"{Guid.NewGuid()}{MimeTypes.MimeTypeMap.GetExtension(contentType)}";
 
-        var sessionResponse = httpClient.PostAsync(requestUrl, null).Result.Content.ReadAsStringAsync().Result;
-        
-        var uploadSession = JsonConvert.DeserializeObject<UploadSessionResponse>(sessionResponse);
+        //string requestUrl = $"{path}root:/{tmpFileName}:/createUploadSession"; //create session for uploading the file stream
+        ////sample url: "https://graph.microsoft.com/v1.0/sites/siteId/drive/items/root:/createUploadSession"
+
+        //var requestContent = new StreamContent(content);
+        //requestContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+
+        //var sessionResponse = httpClient.PostAsync(requestUrl, null).Result.Content.ReadAsStringAsync().Result;
+
+        //var uploadSession = JsonConvert.DeserializeObject<UploadSessionResponse>(sessionResponse);
 
         //todo: clean up later
         //byte[] sContents = GetBytesFromStream(content);
         //string response = UploadFileBySession(uploadSession.uploadUrl, sContents);
-
-        var something = GraphItemsHandler.UploadLargeFileAsync(uploadSession.uploadUrl, content);
-        return something.Result.ItemResponse;            
+        #endregion
     }
 
     //todo
