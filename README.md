@@ -1,4 +1,4 @@
-# AzureServerlessFileConverter
+### AzureServerlessFileConverter
 
 - Use Azure Functions and Graph API to convert file between different supported formats
 - Coded to download uploaded file as pdf using session upload which can handle large size files
@@ -10,18 +10,18 @@ https://learn.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_get_
 - Tested using postman to upload and download file
 - Loved using graph explorer to get the clientid/secrets etc https://developer.microsoft.com/en-us/graph/graph-explorer
 
-## Challenges faced:
+### Challenges faced:
 - figuring out tenant id, client id/secrets etc for the first time
 - assigning api permissions (needed admin access)
 https://learn.microsoft.com/en-us/graph/migrate-azure-ad-graph-configure-permissions?tabs=http%2Cupdatepermissions-azureadgraph-powershell
 - not sure about handing potentially infected files (security with using sharepoint/onedrive as upload folder), cost, clean up of abandoned/failed uploads
 - performance was slow but could be due to free tier/using consumption plan for function
 
-## Future potential extensions:
-- could post teams chat message with summarized text
+### Future potential extensions:
+- once file is available for download post teams chat message or email using graph api
 - extend to use cognitive-services for text summarization, key phrase and named entity recognition
 https://learn.microsoft.com/en-us/azure/cognitive-services/language-service/summarization/how-to/document-summarization
-- integration potential for HealthCare to summarize or categorize patient data/charts etc, PII detection
+- integration potential for HealthCare to categorize patient data/charts etc, PII detection
 https://learn.microsoft.com/en-us/azure/cognitive-services/language-service/text-analytics-for-health/overview?tabs=ner
 https://learn.microsoft.com/en-us/azure/cognitive-services/language-service/personally-identifiable-information/overview
 - based on key phrase or named entity recognition using cognitive-services trigger notification alerts 
