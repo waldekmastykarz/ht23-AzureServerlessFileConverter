@@ -52,7 +52,7 @@ namespace AzureServerlessPDFConverter
             };
 
             GraphServiceClient graphClient = GetGraphServiceClient();
-            var uploadSession = await graphClient.Drives[$"{_graphApiOptions.TeamId}/{_graphApiOptions.GroupId}"].Root
+            var uploadSession = await graphClient.Drives[$"{_graphApiOptions.DriveId}"].Root
                                         .ItemWithPath(filePath)
                                         .CreateUploadSession
                                         .PostAsync(uploadSessionRequestBody);
