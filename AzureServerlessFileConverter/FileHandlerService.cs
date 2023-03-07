@@ -1,20 +1,44 @@
-﻿using Newtonsoft.Json;
+﻿using Azure.Identity;
+using AzureServerlessPDFConverter;
+using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
+using Microsoft.Graph.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using static AzureFileConverter.AuthenticationService;
 
 namespace AzureFileConverter;
 internal class FileHandlerService
 {
     private readonly AuthenticationService _authenticationService;
+    private static GraphApiAuthOptions _graphApiOptions;
     private HttpClient _httpClient;
 
-    internal FileHandlerService(AuthenticationService authenticationService)
+    internal FileHandlerService(AuthenticationService authenticationService, IOptions<GraphApiAuthOptions> options)
     {
         _authenticationService = authenticationService;
+        _graphApiOptions = options.Value;
+    }
+
+    private static GraphServiceClient GetGraphServiceClient()
+    {
+        // using Azure.Identity;
+        var options = new TokenCredentialOptions
+        {
+            AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+        };
+
+        var clientSecretCredential = new ClientSecretCredential(
+        _graphApiOptions.TenantId, _graphApiOptions.ClientId, _graphApiOptions.ClientSecret);
+
+        var graphClient = new GraphServiceClient(clientSecretCredential);
+        return graphClient;
     }
 
     private async Task<HttpClient> CreateAuthorizedHttpClient()
@@ -30,6 +54,7 @@ internal class FileHandlerService
 
         return _httpClient;
     }
+
 
     internal async Task<byte[]> DownloadConvertedFileAsync(string path, string fileId, string targetFormat)
     {
@@ -55,6 +80,7 @@ internal class FileHandlerService
         var httpClient = await CreateAuthorizedHttpClient();
 
         var requestUrl = $"{path}{fileId}";
+        var something = GetGraphServiceClient(); 
         var response = await httpClient.DeleteAsync(requestUrl);
         if (!response.IsSuccessStatusCode)
         {
@@ -81,64 +107,69 @@ internal class FileHandlerService
         
         var uploadSession = JsonConvert.DeserializeObject<UploadSessionResponse>(sessionResponse);
 
-            byte[] sContents = GetBytesFromStream(content);
-            string response = UploadFileBySession(uploadSession.uploadUrl, sContents);
-            return response;            
+        //todo: clean up later
+        //byte[] sContents = GetBytesFromStream(content);
+        //string response = UploadFileBySession(uploadSession.uploadUrl, sContents);
+
+        var something = GraphItemsHandler.UploadLargeFileAsync(uploadSession.uploadUrl, content);
+        return something.Result.ItemResponse.Id;            
     }
 
-    private static string UploadFileBySession(string url, byte[] file)
-    {
-        int fragSize = 1024 * 1024 * 4;
-        var arrayBatches = ByteArrayIntoBatches(file, fragSize);
-        int start = 0;
-        string response = "";
+    //todo
+    #region cleanUp
+    //private static string UploadFileBySession(string url, byte[] file)
+    //{
+    //    int fragSize = 1024 * 1024 * 4;
+    //    var arrayBatches = ByteArrayIntoBatches(file, fragSize);
+    //    int start = 0;
+    //    string response = "";
 
-        foreach (var byteArray in arrayBatches) //todo: better way to do this?
-        {
-            int byteArrayLength = byteArray.Length;
-            var contentRange = " bytes " + start + "-" + (start + (byteArrayLength - 1)) + "/" + file.Length;
+    //    foreach (var byteArray in arrayBatches) //todo: better way to do this?
+    //    {
+    //        int byteArrayLength = byteArray.Length;
+    //        var contentRange = " bytes " + start + "-" + (start + (byteArrayLength - 1)) + "/" + file.Length;
 
-            using (var client = new HttpClient())
-            {
-                var content = new ByteArrayContent(byteArray);
-                content.Headers.Add("Content-Length", byteArrayLength.ToString());
-                content.Headers.Add("Content-Range", contentRange);
+    //        using (var client = new HttpClient())
+    //        {
+    //            var content = new ByteArrayContent(byteArray);
+    //            content.Headers.Add("Content-Length", byteArrayLength.ToString());
+    //            content.Headers.Add("Content-Range", contentRange);
 
-                response = client.PutAsync(url, content).Result.Content.ReadAsStringAsync().Result;
-            }
+    //            response = client.PutAsync(url, content).Result.Content.ReadAsStringAsync().Result;
+    //        }
 
-            start += byteArrayLength;
-        }
-        return response;
-    }
+    //        start += byteArrayLength;
+    //    }
+    //    return response;
+    //}
 
-    private static IEnumerable<byte[]> ByteArrayIntoBatches(byte[] bArray, int intBufforLengt)
-    {
-        int bArrayLenght = bArray.Length;
-        int i = 0;
-        byte[] bReturn;
-        for (; bArrayLenght > (i + 1) * intBufforLengt; i++)
-        {
-            bReturn = new byte[intBufforLengt];
-            Array.Copy(bArray, i * intBufforLengt, bReturn, 0, intBufforLengt);
-            yield return bReturn;
-        }
+    //private static IEnumerable<byte[]> ByteArrayIntoBatches(byte[] bArray, int intBufforLengt)
+    //{
+    //    int bArrayLenght = bArray.Length;
+    //    int i = 0;
+    //    byte[] bReturn;
+    //    for (; bArrayLenght > (i + 1) * intBufforLengt; i++)
+    //    {
+    //        bReturn = new byte[intBufforLengt];
+    //        Array.Copy(bArray, i * intBufforLengt, bReturn, 0, intBufforLengt);
+    //        yield return bReturn;
+    //    }
 
-        int intBufforLeft = bArrayLenght - i * intBufforLengt;
-        if (intBufforLeft > 0)
-        {
-            bReturn = new byte[intBufforLeft];
-            Array.Copy(bArray, i * intBufforLengt, bReturn, 0, intBufforLeft);
-            yield return bReturn;
-        }
-    }
-
-    private static byte[] GetBytesFromStream(Stream input)
-    {
-        using MemoryStream ms = new();
-        input.CopyTo(ms);
-        return ms.ToArray();
-    }
+    //    int intBufforLeft = bArrayLenght - i * intBufforLengt;
+    //    if (intBufforLeft > 0)
+    //    {
+    //        bReturn = new byte[intBufforLeft];
+    //        Array.Copy(bArray, i * intBufforLengt, bReturn, 0, intBufforLeft);
+    //        yield return bReturn;
+    //    }
+    //}
+    //private static byte[] GetBytesFromStream(Stream input)
+    //{
+    //    using MemoryStream ms = new();
+    //    input.CopyTo(ms);
+    //    return ms.ToArray();
+    //}
+    #endregion
 }
 
 internal class UploadSessionResponse

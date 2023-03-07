@@ -42,5 +42,8 @@ internal class AuthenticationService
         public string TenantId { get; set; } //secrets
         public string ClientId { get; set; } //secrets
         public string ClientSecret { get; set; } //secrets
+        public string GroupId { get; set;} //secrets
+        public string TeamId { get; set; } //secrets
     }
 }
+
