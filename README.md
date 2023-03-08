@@ -1,5 +1,7 @@
 ### AzureServerlessFileConverter
 
+This was submitted for the Hack Together: Microsoft Graph and .NET hackathon using .NET and Microsoft Graph.
+
 - Use Azure Functions and Graph API to convert file between different supported formats
 - Coded to download uploaded file as pdf using session upload which can handle large size files
 https://learn.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
