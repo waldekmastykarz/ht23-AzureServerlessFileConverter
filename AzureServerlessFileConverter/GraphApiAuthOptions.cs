@@ -1,6 +1,6 @@
 ﻿namespace AzureFileConverter;
 
-internal class GraphApiAuthOptions
+public class GraphApiAuthOptions
 {
     public string Endpoint { get; set; } = "https://login.microsoftonline.com/";
     public string GrantType { get; set; } = "client_credentials";
