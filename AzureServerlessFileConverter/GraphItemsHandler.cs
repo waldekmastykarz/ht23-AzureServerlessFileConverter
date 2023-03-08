@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
-using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -88,7 +87,7 @@ namespace AzureServerlessPDFConverter
         internal static async Task DeleteFileFromDrive(string itemId)
         {
             GraphServiceClient graphClient = GetGraphServiceClient();
-            await graphClient.Me.Messages[itemId]
+            await graphClient.Drives[$"{_graphApiOptions.DriveId}"].Items[itemId]
                 .DeleteAsync();
         }
 
